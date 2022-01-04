@@ -13,6 +13,7 @@ import os = require('os');
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import utils = require('./lib/utils.js');
 import Context = require('./lib/context.js');
+import { decache } from './lib/decache.js';
 
 /*
  * Lambda local version
@@ -21,14 +22,14 @@ export const version = "2.0.0";
 
 var logger = utils.getWinstonConsole();
 
-export function setLogger(_logger){
-    if(_logger != null && typeof _logger.transports != 'undefined'){
+export function setLogger(_logger) {
+    if (_logger != null && typeof _logger.transports != 'undefined') {
         logger = _logger;
     } else {
         console.warn("Invalid logger object ! Using default logger");
     }
 }
- 
+
 export function getLogger() {
     return logger;
 }
@@ -52,34 +53,34 @@ export function execute(opts) {
 };
 
 export function watch(opts) {
-    if (!opts.verboseLevel){
+    if (!opts.verboseLevel) {
         opts.verboseLevel = 0;
     }
-    const server = createServer(async function(req: IncomingMessage, res: ServerResponse) {
+    const server = createServer(async function (req: IncomingMessage, res: ServerResponse) {
         var log_msg = `${req.method} ${req.headers.host} ${req.url}`;
-        function handle_error(error){
+        function handle_error(error) {
             logger.log('warn', log_msg + ` -> ${error}`);
             res.statusCode = 500;
             return res.end(JSON.stringify({ error }));
         }
         try {
-            if(req.headers['content-type'] !== 'application/json') throw 'Invalid header Content-Type (Expected application/json)';
+            if (req.headers['content-type'] !== 'application/json') throw 'Invalid header Content-Type (Expected application/json)';
             _getRequestPayload(req, async (error, result) => {
                 try {
-                    if(error) throw error;
+                    if (error) throw error;
                     const data = await execute({ ...opts, event: () => result });
                     const ans = JSON.stringify({ data });
                     logger.log('info', log_msg + ` -> OK (${ans.length * 2} bytes)`);
                     return res.end(ans);
-                } catch(error) {
+                } catch (error) {
                     return handle_error(error);
                 }
             });
-        } catch(error) {
+        } catch (error) {
             return handle_error(error);
         }
     });
-    server.listen(opts.port, function() {
+    server.listen(opts.port, function () {
         logger.log('info', `Lambda handler listening on http://localhost:${opts.port}`);
     })
 }
@@ -91,7 +92,7 @@ function _getRequestPayload(req, callback) {
     });
     req.on('end', () => {
         const payload = JSON.parse(body);
-        if(!payload.event) {
+        if (!payload.event) {
             callback('Invalid body (Expected "event" property)');
         }
         callback(null, payload.event);
@@ -102,7 +103,7 @@ function updateEnv(env) {
     /*
      * Update environment vars if not already in place
      */
-    Object.keys(env).forEach(function (key){
+    Object.keys(env).forEach(function (key) {
         if (!process.env[key]) {
             process.env[key] = env[key];
         }
@@ -129,7 +130,7 @@ function _executeSync(opts) {
     if (opts.clientContext) {
         try {
             clientContext = JSON.parse(opts.clientContext)
-        } catch(err) {
+        } catch (err) {
             throw new SyntaxError("clientContext must be stringified JS object");
         }
 
@@ -140,7 +141,7 @@ function _executeSync(opts) {
         return;
     }
 
-    if (lambdaPath){
+    if (lambdaPath) {
         lambdaPath = utils.getAbsolutePath(lambdaPath);
     }
 
@@ -161,7 +162,7 @@ function _executeSync(opts) {
      * The standard format is `file.method`, where file is the name of the file without an extension, and method is the name of a method or function that's defined in the file.
      * (https://docs.aws.amazon.com/lambda/latest/dg/runtimes-custom.html)
      */
-    if (lambdaPath){
+    if (lambdaPath) {
         envVars['LAMBDA_TASK_ROOT'] = path.dirname(lambdaPath);
         envVars['_HANDLER'] = path.basename(lambdaPath, path.extname(lambdaPath)) + "." + lambdaHandler;
     } else {
@@ -172,10 +173,10 @@ function _executeSync(opts) {
 
     // custom environment variables
     if (environment != null) {
-        if (envdestroy == null){
+        if (envdestroy == null) {
             envdestroy = false;
         }
-        Object.keys(environment).forEach(function(key) {
+        Object.keys(environment).forEach(function (key) {
             process.env[key] = environment[key];
         });
     }
@@ -204,7 +205,7 @@ function _executeSync(opts) {
     process.env['AWS_DEFAULT_REGION'] = region || process.env['AWS_DEFAULT_REGION'] || 'us-east-1';
 
     //Logs
-    if (typeof verboseLevel == 'undefined'){
+    if (typeof verboseLevel == 'undefined') {
         verboseLevel = 3
     }
 
@@ -216,9 +217,9 @@ function _executeSync(opts) {
         callbackWaitsForEmptyEventLoop: callbackWaitsForEmptyEventLoop,
         verboseLevel: verboseLevel,
         logger: logger,
-        finalCallback: function(){
+        finalCallback: function () {
             if (environment != null && envdestroy) {
-                Object.keys(environment).forEach(function(key) {
+                Object.keys(environment).forEach(function (key) {
                     delete process.env[key];
                 });
             }
@@ -226,20 +227,20 @@ function _executeSync(opts) {
         clientContext: clientContext
     });
 
-    if(callback) context.callback = callback;
+    if (callback) context.callback = callback;
 
     var ctx = context.generate_context();
 
     try {
         // load lambda function
-        if (!(lambdaFunc)){
+        if (!(lambdaFunc)) {
             // delete this function from the require.cache to ensure every dependency is refreshed
-            delete require.cache[require.resolve(lambdaPath)];
+            decache(lambdaPath);
             lambdaFunc = require(lambdaPath);
         }
 
         //load event
-        if (event instanceof Function){
+        if (event instanceof Function) {
             event = event();
         }
 
@@ -255,7 +256,7 @@ function _executeSync(opts) {
                 ctx.succeed(result);
             }
         }
-    } catch(err){
+    } catch (err) {
         ctx.fail(err);
     }
 };
