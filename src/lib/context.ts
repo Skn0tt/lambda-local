@@ -216,6 +216,7 @@ Context.prototype.done = function(err, message) {
         }
     }
     this.finalCallback(); //Destroy env...
+    this.onInvocationEnd();
     /*
     The finalCallback method will be instantly called if 'this.callbackWaitsForEmptyEventLoop' is False
     Otherwise, lambda-local will wait for an empty loop then call it.
