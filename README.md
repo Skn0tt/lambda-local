@@ -70,6 +70,7 @@ Executes a lambda given the `options` object, which is a dictionary where the ke
 | `envdestroy`|optional, destroy added environment on closing, default to false|
 | `verboseLevel`|optional, default 3. Level 2 dismiss handler() text, level 1 dismiss lambda-local text and level 0 dismiss also the result.|
 | `callback`|optional, lambda third parameter [callback][1]. When left out a Promise is returned|
+| `onInvocationEnd`|optional. called once the invocation ended. useful when awslambda.streamifyResponse is used to distinguish between end of response stream and end of invocation. |
 | `clientContext`|optional, used to populated clientContext property of lambda second parameter (context)
 
 #### `lambdaLocal.setLogger(logger)`
