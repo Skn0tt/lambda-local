@@ -130,8 +130,6 @@ Context.prototype._init_timeout = function(){
     }).bind(this), this.timeout);
 }
 
-export const onInvocationEnd = Symbol('lambda-local - onInvocationEnd'); 
-
 /*
  * Util function used in lambdalocal.js to get parameters for the handler
  */
