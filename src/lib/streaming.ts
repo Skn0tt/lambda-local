@@ -27,7 +27,7 @@ function streamifyResponse(handler) {
     });
 }
 
-class StreamingBody extends PassThrough {
+export class StreamingBody extends PassThrough {
   constructor(private readonly resolve: (metadata) => void) {
     super();
   }

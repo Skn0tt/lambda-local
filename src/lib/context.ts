@@ -8,6 +8,7 @@
 
 import utils = require('./utils.js');
 import mute = require('./mute.js');
+import { StreamingBody } from './streaming.js';
 
 function Context() {
     this.logger = null;
@@ -216,7 +217,12 @@ Context.prototype.done = function(err, message) {
         }
     }
     this.finalCallback(); //Destroy env...
-    this.onInvocationEnd();
+
+    const isStream = typeof message === "object" && message.body instanceof StreamingBody
+    if (!isStream) {
+        this.onInvocationEnd?.();
+    }
+
     /*
     The finalCallback method will be instantly called if 'this.callbackWaitsForEmptyEventLoop' is False
     Otherwise, lambda-local will wait for an empty loop then call it.

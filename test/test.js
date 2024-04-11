@@ -435,7 +435,7 @@ describe("- Testing lambdalocal.js", function () {
             it('should return a readable stream as `body`', function () {
                 var lambdalocal = require(lambdalocal_path);
                 lambdalocal.setLogger(winston);
-                let invocationEnded = false
+                let invocationEnded = 0
                 return lambdalocal.execute({
                     event: require(path.join(__dirname, "./events/test-event.js")),
                     lambdaPath: path.join(__dirname, "./functs/test-func-streaming.js"),
@@ -444,7 +444,7 @@ describe("- Testing lambdalocal.js", function () {
                     timeoutMs: timeoutMs,
                     verboseLevel: 1,
                     onInvocationEnd() {
-                        invocationEnded = true
+                        invocationEnded++
                     }
                 }).then(function (data) {
                     assert.deepEqual(
@@ -463,10 +463,10 @@ describe("- Testing lambdalocal.js", function () {
                             assert.deepEqual(chunks, ["foo", "bar"])
                             assert.closeTo(times[1] - times[0], 100, 50)
 
-                            assert.isFalse(invocationEnded)
+                            assert.equal(invocationEnded, 0)
 
                             setTimeout(() => {
-                                assert.isTrue(invocationEnded)    
+                                assert.equal(invocationEnded, 1)    
                                 resolve()
                             }, 200)
                         });
