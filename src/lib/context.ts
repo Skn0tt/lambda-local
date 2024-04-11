@@ -216,7 +216,7 @@ Context.prototype.done = function(err, message) {
     }
     this.finalCallback(); //Destroy env...
 
-    const isStream = typeof message === "object" && message.body instanceof StreamingBody
+    const isStream = typeof message === "object" && message?.body instanceof StreamingBody
     if (!isStream) {
         this.onInvocationEnd?.();
     }
