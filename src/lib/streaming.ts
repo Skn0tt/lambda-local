@@ -19,8 +19,10 @@ function streamifyResponse(handler) {
         if (!body.headersSent) {
           body.sendHeader(metadata)
         }
+        context.__lambdaLocal.onInvocationEnd?.();
       } catch (error) {
         reject(error);
+        context.__lambdaLocal.onInvocationEnd?.(error);
       }
     });
 }

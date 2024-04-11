@@ -18,6 +18,8 @@ exports.handler = awslambda.streamifyResponse(
             responseStream.write("bar");
             responseStream.end();
         }, 100);
+
+        await new Promise(resolve => setTimeout(resolve, 200));
     }
 );
 

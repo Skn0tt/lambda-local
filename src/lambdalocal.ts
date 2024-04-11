@@ -187,6 +187,7 @@ function _executeSync(opts) {
         timeoutMs = opts.timeoutMs || 3000,
         verboseLevel = opts.verboseLevel,
         callback = opts.callback,
+        onInvocationEnd = opts.onInvocationEnd,
         clientContext = null;
 
     if (opts.clientContext) {
@@ -295,7 +296,8 @@ function _executeSync(opts) {
                 });
             }
         },
-        clientContext: clientContext
+        clientContext: clientContext,
+        onInvocationEnd: onInvocationEnd,
     });
 
     if(callback) context.callback = callback;

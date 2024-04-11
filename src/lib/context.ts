@@ -39,6 +39,7 @@ function Context() {
     this.logStreamName = 'Stream name';
     this.identity = null;
     this.clientContext = null;
+    this.onInvocationEnd = null;
 
     /*
      * callback function called after done
@@ -112,6 +113,7 @@ Context.prototype._initialize = function(options) {
         this.unmute = mute();
     }
     this.clientContext = options.clientContext;
+    this.onInvocationEnd = options.onInvocationEnd;
 
     return;
 };
@@ -126,6 +128,8 @@ Context.prototype._init_timeout = function(){
         this.fail(new utils.TimeoutError('Task timed out after ' + (this.timeout / 1000).toFixed(2) + ' seconds'));
     }).bind(this), this.timeout);
 }
+
+export const onInvocationEnd = Symbol('lambda-local - onInvocationEnd'); 
 
 /*
  * Util function used in lambdalocal.js to get parameters for the handler
@@ -149,7 +153,12 @@ Context.prototype.generate_context = function(){
         logStreamName: this.logStreamName,
         identity: this.identity,
         clientContext: this.clientContext,
-        _stopped: false
+        _stopped: false,
+
+        // INTERNAL
+        __lambdaLocal: {
+            onInvocationEnd: this.onInvocationEnd
+        },
     };
     return ctx;
 }
